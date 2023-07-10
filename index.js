@@ -1,14 +1,36 @@
-const fs = require("fs/promises");
-const path = require("path");
+const { Command } = require("commander");
 
-const pathJoin = path.join(__dirname, "db", "contacts.json");
-const pathResolve = path.resolve("db", "contacts.json");
-console.log("pathJoin", pathJoin);
-console.log("pathResolve", pathResolve);
-console.log("path.resolve", path.resolve());
-console.log("__dirname", __dirname);
+const contacts = require("./contacts");
 
-/**
- * test docs
- * @returns {Promise</void>}
- */
+const program = new Command();
+
+program
+  .option("-a, --action <type>", "choose action")
+  .option("-i, --id <type>", "user id")
+  .option("-n, --name <type>", "user name")
+  .option("-e, --email <type>", "user email")
+  .option("-p, --phone <type>", "user phone");
+
+program.parse(process.argv);
+const argv = program.opts();
+
+async function invokeAction({ action, id, name, email, phone }) {
+  switch (action) {
+    case "list":
+      const allContacts = await contacts.listContacts();
+      return console.log(allContacts);
+    case "get":
+      const contact = await contacts.getContactById(id);
+      return console.log(contact);
+    case "add":
+      const newContact = await contacts.addContact({ name, email, phone });
+      return console.log(newContact);
+    case "remove":
+      const deleteContact = await contacts.removeContact(id);
+      return console.log(deleteContact);
+    default:
+      console.warn("\x1B[31m Unknown action type!");
+  }
+}
+
+invokeAction(argv);
